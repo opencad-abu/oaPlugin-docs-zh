@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aivipcell 模块说明 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aivipcell.html" aria-current="page">aivipcell</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a class="active-link" href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aivipcell</div>
+        <h1>aivipcell</h1>
+        <p class="lead">
+          这是 Python3 PCell 桥，把 OA 的 PCell 定义映射到 Python 模块和函数。它的目标是让参数化单元的生成逻辑留在 Python，OA 侧只负责读写和调度。
+        </p>
+
+        <div class="meta">
+          <div><strong>构建目标：</strong><code>oaAiviPcell</code></div>
+          <div><strong>接口：</strong><code>IPcell</code>，外加 <code>oaPcellDef</code> 的持久化支持。</div>
+          <div><strong>环境：</strong>通过 <code>ACELL_PYTHONPATH</code> 扩展 Python 导入路径。</div>
+        </div>
+
+        <h2>导出入口</h2>
+        <table>
+          <thead>
+            <tr><th>符号</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>getClassObject()</code></td><td>OA 加载器标准入口，返回 PCell 工厂。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>主类</h2>
+        <table>
+          <thead>
+            <tr><th>组件</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>AiviPcell</code></td><td>插件主类，执行 Python evaluator 并把结果写回 OA。</td></tr>
+            <tr><td><code>PcellDef</code></td><td>持久化包装，保存模块名、函数名和 schema 元数据。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>元数据键</h2>
+        <table>
+          <thead>
+            <tr><th>键</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>AcellModule</code> / <code>AcellFunc</code></td><td>首选 Python evaluator 的模块和函数名。</td></tr>
+            <tr><td><code>PyModule</code> / <code>PyFunc</code></td><td>兼容别名，便于旧数据迁移。</td></tr>
+            <tr><td><code>AcellVersion</code> / <code>AcellSchema</code></td><td>持久化版本和 schema 号。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>常用方法</h2>
+        <table>
+          <thead>
+            <tr><th>方法</th><th>作用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>getPcellDef()</code></td><td>返回绑定的 PCell 定义。</td></tr>
+            <tr><td><code>onBind()</code> / <code>onUnbind()</code></td><td>绑定和解绑时处理元数据。</td></tr>
+            <tr><td><code>onEval()</code></td><td>导入 Python 模块、传递参数并执行 evaluator。</td></tr>
+            <tr><td><code>onDiskLoad()</code> / <code>onDiskSave()</code></td><td>序列化和恢复 PCell 元数据。</td></tr>
+            <tr><td><code>calcDiskSize()</code></td><td>计算持久化大小。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>调用流</h2>
+        <ol>
+          <li>OA 读取 PCell 定义并恢复模块名、函数名和 schema。</li>
+          <li><code>AiviPcell</code> 调用 Python 解释器，并在需要时补充 <code>ACELL_PYTHONPATH</code>。</li>
+          <li>把 OA 参数转换成 Python 字典，再调用 evaluator。</li>
+          <li>把返回的几何、引脚、网络和属性写回 OA 设计对象。</li>
+        </ol>
+
+        <pre><code>export ACELL_PYTHONPATH=./python</code></pre>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aivipcell / oaPlugin</footer>
+</body>
+</html>

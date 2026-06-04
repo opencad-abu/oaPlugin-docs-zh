@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aivilock 锁后端 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aivilock.html" aria-current="page">aivilock</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a class="active-link" href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aivilock</div>
+        <h1>aivilock</h1>
+        <p class="lead">
+          这是 pthread 版本的锁后端，目标是兼容 <code>liboaLockCDS.so</code> 的 ABI 形态。它提供 mutex、spin mutex、rwlock 和录制锁工厂。
+        </p>
+
+        <div class="meta">
+          <div><strong>定位：</strong>底层锁实现，不是 OA 业务插件。</div>
+          <div><strong>入口：</strong><code>getClassObject()</code> 返回 <code>LockFactoryMgr::get()</code>。</div>
+          <div><strong>用途：</strong>给 OA/DM 组件提供锁工厂和录制接口。</div>
+        </div>
+
+        <h2>核心类型</h2>
+        <table>
+          <thead>
+            <tr><th>类型</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Mutex</code> / <code>SpinMutex</code> / <code>RWLock</code></td><td>基础锁实现。</td></tr>
+            <tr><td><code>RecordingMutex</code> / <code>RecordingSpinMutex</code> / <code>RecordingRWLock</code></td><td>带记录能力的锁实现。</td></tr>
+            <tr><td><code>ThreadRecording</code></td><td>线程级锁记录容器。</td></tr>
+            <tr><td><code>LockFactoryMgr</code></td><td>锁工厂总管，负责初始化、注册和查询。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>常用接口</h2>
+        <table>
+          <thead>
+            <tr><th>方法</th><th>作用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>init()</code></td><td>选择工厂类型并完成初始化。</td></tr>
+            <tr><td><code>enableLocking()</code> / <code>enableLockingForResType()</code></td><td>控制锁功能开关。</td></tr>
+            <tr><td><code>startRecording()</code> / <code>stopRecording()</code></td><td>开启或关闭锁记录。</td></tr>
+            <tr><td><code>registerThread()</code> / <code>unregisterThread()</code></td><td>登记线程 ID。</td></tr>
+            <tr><td><code>getLockFactory()</code></td><td>按 GUID 查找具体锁工厂。</td></tr>
+            <tr><td><code>isLockingEnabled()</code></td><td>查询当前锁是否启用。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>调用方式</h2>
+        <ol>
+          <li>OA 或 DM 代码先拿到 <code>LockFactoryMgr::get()</code>。</li>
+          <li>按当前运行模式调用 <code>init()</code>，选择 CDS 或 recording 工厂。</li>
+          <li>后续对象锁通过工厂创建的 mutex / rwlock 实例完成。</li>
+        </ol>
+
+        <p>
+          这层主要解决“锁实现应该长什么样”这个 ABI 问题，属于非常底层的支撑库。
+        </p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aivilock / oaPlugin</footer>
+</body>
+</html>

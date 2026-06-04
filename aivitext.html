@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aivitext 文本系统 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aivitext.html" aria-current="page">aivitext</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a class="active-link" href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aivitext</div>
+        <h1>aivitext</h1>
+        <p class="lead">
+          这是文本边界框插件，按native text 系统的方式为 <code>oaText</code> 和 <code>oaTextDisplay</code> 计算 bbox。
+        </p>
+
+        <div class="meta">
+          <div><strong>产物：</strong><code>liboaAiviText.so</code></div>
+          <div><strong>入口：</strong><code>oaNativeTextInit()</code> 与 <code>getClassObject()</code></div>
+          <div><strong>注册名：</strong><code>oaNativeText</code>、<code>oaTextSystem</code></div>
+        </div>
+
+        <h2>主类</h2>
+        <table>
+          <thead>
+            <tr><th>组件</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>oaNativeText</code></td><td><code>PlugInBase&lt;IText&gt;</code> 实现类。</td></tr>
+            <tr><td><code>componentName</code></td><td>组件名为 <code>oaNativeText</code>。</td></tr>
+            <tr><td><code>factory</code></td><td>OA 工厂对象，供插件管理器注册。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>关键方法</h2>
+        <table>
+          <thead>
+            <tr><th>方法</th><th>作用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>getName()</code></td><td>返回插件名。</td></tr>
+            <tr><td><code>getBBox(const oaText*)</code></td><td>为静态文本计算 bbox。</td></tr>
+            <tr><td><code>getBBox(const oaTextDisplay*)</code></td><td>为显示文本计算 bbox。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>调用流</h2>
+        <ol>
+          <li>OA 侧加载插件工厂。</li>
+          <li>对文本对象调用 <code>getBBox()</code>。</li>
+          <li>内部使用 <code>oaFont::calcBBox()</code> 统一计算范围。</li>
+        </ol>
+
+        <p>
+          这个模块比较专一，核心就是把文本显示和文本对象的外形计算统一起来。
+        </p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aivitext / oaPlugin</footer>
+</body>
+</html>

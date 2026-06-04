@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aivivc 使用说明 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aivivc.html" aria-current="page">使用说明</a>
+        <a class="tab" href="api.html">API</a>
+        <a class="tab" href="integration.html">Virtuoso 集成</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a class="active-link" href="aivivc.html">aivivc 使用说明</a></li>
+            <li><a href="api.html">aivivc API</a></li>
+            <li><a href="integration.html">Virtuoso 集成 flow</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a class="active-link" href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sidebar-panel">
+        <div class="sidebar-title">aivivc 能力</div>
+        <div class="sidebar-body">
+          <div class="badge-list">
+            <span class="badge">Status</span>
+            <span class="badge">Make Editable</span>
+            <span class="badge">Commit</span>
+            <span class="badge">Cancel</span>
+            <span class="badge">Update</span>
+            <span class="badge">History</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-panel">
+        <div class="sidebar-title">构建产物</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><code>liboaAiviVC.so</code></li>
+            <li><code>libgdmaivivc_sh.so</code></li>
+            <li><code>aivivc-gdm</code></li>
+            <li><code>aivivcgdmconfig</code></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aivivc 使用说明</div>
+        <h1>aivivc</h1>
+        <p class="lead">
+          oaPlugin 是 AIVI 项目的一部分。aivivc（AIVI Version Control）是其中的一个模块，用作基于 Git/SVN 的 OA 数据简单版本管控，并提供 OpenAccess、Virtuoso Library Manager 和 Cadence GDM 的桥接入口。
+        </p>
+
+        <div class="meta">
+          <div><strong>定位：</strong>OA 版本管控桥梁，优先服务 AIVI，并兼容 Virtuoso 平台。</div>
+          <div><strong>边界：</strong>Git/SVN 负责版本内容；编辑权限和协同锁后续可以交由独立状态模块实现。</div>
+          <div><strong>入口：</strong>命令行 <code>aivivc-gdm</code>、GDM native wrapper、Library Manager SKILL 菜单。</div>
+        </div>
+
+        <h2>职责边界</h2>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <h3>OA 插件入口</h3>
+            <p>通过 <code>liboaAiviVC.so</code> 注册 OA VC system，实现 <code>IVersionControl</code>、<code>IVCSystem</code> 和相关插件入口。</p>
+          </div>
+          <div class="summary-card">
+            <h3>GDM 命令适配</h3>
+            <p><code>aivivc-gdm</code> 解析 GDM 风格参数，执行 <code>status</code>、<code>co</code>、<code>ci</code>、<code>cancel</code>、<code>update</code>、<code>history</code>。</p>
+          </div>
+          <div class="summary-card">
+            <h3>Virtuoso 菜单桥</h3>
+            <p>SKILL 代码把 Library Manager 选择对象解析为 OA 文件路径，并调用 GDM 适配器完成动作。</p>
+          </div>
+        </div>
+
+        <h2>快速开始</h2>
+        <ol>
+          <li>设置 <code>OAPLG_ROOT</code>、<code>OACPP_ROOT</code> 和目标 <code>WORKAREA</code>。</li>
+          <li>执行统一构建，确认 RHEL90 构建产物生成。</li>
+          <li>启动 Virtuoso 前 source 环境脚本，保证进程继承 PATH、LD_LIBRARY_PATH、OA_PLUGIN_PATH 和 GDM 变量。</li>
+          <li>在 Library Manager 选择 library/cell/view，使用 <code>Status...</code>、<code>Make Editable</code>、<code>Commit...</code> 或 <code>Cancel Edit...</code>。</li>
+        </ol>
+
+        <pre><code>export OAPLG_ROOT=...
+export OACPP=...
+export WORKAREA=...
+
+cd "$OAPLG_ROOT"
+./build_all.sh opt
+
+source "$OAPLG_ROOT/scripts/aivivc_virtuoso_env.sh" "$WORKAREA"
+aivivc-gdm status -cdslib "$WORKAREA/cds.lib" -lib myLib.myCell:schematic/sch.oa</code></pre>
+
+        <h2>状态模型</h2>
+        <p>
+          <code>git status clean</code> 只代表内容没有改动，不代表 GDM 已 check-in。当前实现会把 checkout 标记和文件权限结合起来，让未 checkout 的 OA 数据默认只读，Make Editable 后才恢复可写。
+        </p>
+        <table>
+          <thead>
+            <tr><th>用户状态</th><th>GDM 状态</th><th>文件权限</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>已受控，未 checkout</td><td><code>gdmStateCI</code></td><td><code>READ</code></td><td>默认只读，直接编辑应被阻止。</td></tr>
+            <tr><td>当前用户 Make Editable</td><td><code>gdmStateCO</code></td><td><code>WRITE</code></td><td>写入 checkout 标记，允许编辑 OA 数据。</td></tr>
+            <tr><td>其它用户 checkout</td><td><code>gdmStateCOE</code></td><td><code>READ</code></td><td>报告为 Locked，当前用户不能直接打开写权限。</td></tr>
+            <tr><td>远端有更新</td><td><code>OUT_OF_DATE</code></td><td><code>READ</code></td><td>需要先执行 Update，再继续编辑。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Library Manager 用户 flow</h2>
+        <ol>
+          <li>选中受控 OA 对象，执行 <code>Status...</code> 查看当前状态。</li>
+          <li>需要编辑时先执行 <code>Make Editable</code>。该动作会写 checkout marker，并把受控文件设为当前用户可写。</li>
+          <li>编辑并保存 OA 数据后执行 <code>Commit...</code>。即使 Git/SVN 没有内容改动，aivivc 也会释放 checkout marker 并恢复只读。</li>
+          <li>不保留编辑时执行 <code>Cancel Edit...</code>，回退内容并释放 checkout marker。</li>
+          <li>远端或 SVN 服务端有更新时先执行 <code>Update</code>，再继续编辑。</li>
+        </ol>
+
+        <h2>接口对接</h2>
+        <table>
+          <thead>
+            <tr><th>接口层</th><th>对接方式</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>命令行</td><td>通过 <code>aivivc-gdm</code> 提供 <code>status</code>、<code>co</code>、<code>ci</code>、<code>cancel</code>、<code>update</code>、<code>history</code> 等动作。</td></tr>
+            <tr><td>GDM</td><td>通过 <code>libgdmaivivc_sh.so</code> 导出 GDM wrapper 函数表，并把请求转发给 <code>aivivc-gdm</code>。</td></tr>
+            <tr><td>SKILL</td><td>Library Manager 菜单 callback 解析选中对象路径，再调用 GDM adapter。</td></tr>
+            <tr><td>OA 插件</td><td>通过 <code>oaAiviVC.plg</code> 和 <code>aivivc.plg</code> 让 OA 发现 AIVI VC system。</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          详细接口说明见 <a href="api.html">API 文档</a>，完整 Virtuoso 接入步骤见 <a href="integration.html">Virtuoso 集成 flow</a>。
+        </div>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aivivc 是 oaPlugin 的子模块 / AIVI Version Control</footer>
+</body>
+</html>

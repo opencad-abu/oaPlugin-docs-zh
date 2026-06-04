@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aivivc API 文档 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab" href="aivivc.html">使用说明</a>
+        <a class="tab active" href="api.html" aria-current="page">API</a>
+        <a class="tab" href="integration.html">Virtuoso 集成</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+            <li><a class="active-link" href="api.html">aivivc API</a></li>
+            <li><a href="integration.html">Virtuoso 集成 flow</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sidebar-panel">
+        <div class="sidebar-title">API 章节</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="#surfaces">接口面</a></li>
+            <li><a href="#oa-plugin">OA 插件入口</a></li>
+            <li><a href="#config">配置属性</a></li>
+            <li><a href="#semantics">OA 操作语义</a></li>
+            <li><a href="#gdm-adapter">GDM 适配器</a></li>
+            <li><a href="#gdm-wrapper">原生 GDM 封装库</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aivivc API</div>
+        <h1>AIVIVC 接口 API 文档</h1>
+        <p class="lead">
+          本页覆盖 aivivc 的对外接口。aivivc 是 OpenAccess 版本控制插件和 Cadence GDM 桥接层，底层版本管理仍由 Git 或 SVN 工具完成。
+        </p>
+
+        <h2 id="surfaces">接口速查</h2>
+        <table>
+          <thead>
+            <tr><th>接口面</th><th>调用者</th><th>入口</th><th>主要用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>OA VC 插件</td><td>OA 插件管理器 / AIVI</td><td><code>oaAiviVCInit()</code>、<code>getClassObject()</code></td><td>注册 <code>IVersionControl</code>/<code>IVCSystem</code>。</td></tr>
+            <tr><td>GDM 命令适配器</td><td>SKILL、原生封装库、命令行测试</td><td><code>aivivc-gdm &lt;cmd&gt; ...</code></td><td>统一执行状态、checkout、commit、cancel、update、history、protect。</td></tr>
+            <tr><td>原生 GDM 封装库</td><td>Cadence GDM 加载器</td><td><code>libgdmaivivc_sh.so</code>、<code>gdmaivivcWrapFuncs</code></td><td>把 Cadence GDM 函数表调用转发到 <code>aivivc-gdm</code>。</td></tr>
+            <tr><td>Library Manager SKILL</td><td>Virtuoso Library Manager</td><td><code>aivivcCallbacks.il</code>、<code>aivivcLibMgr.il</code></td><td>提供菜单、弹窗、选中对象到文件路径的解析。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>组件边界</h2>
+        <table>
+          <thead>
+            <tr><th>组件</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>src/aivivc/oaAiviVC*.cpp</code></td><td>OA <code>IVCPlugIn</code>、<code>IVersionControl</code>、<code>IVCSystem</code> 实现。</td></tr>
+            <tr><td><code>src/aivivc/gdm/aivivc-gdm</code></td><td>GDM 风格命令适配器，调用 Git/SVN 并维护 checkout marker。</td></tr>
+            <tr><td><code>src/aivivc/gdm/aivivcgdmconfig</code></td><td>GDM 配置探测脚本。</td></tr>
+            <tr><td><code>src/aivivc/gdm/aivivc_gdm_wrap.c</code></td><td>Cadence 原生 GDM 薄封装库。</td></tr>
+            <tr><td><code>src/aivivc/skill/aivivcLibMgr.il</code></td><td>Virtuoso Library Manager 菜单桥。</td></tr>
+            <tr><td><code>data/plugins/*.plg</code></td><td>OA 插件描述和别名。</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="oa-plugin">OA 插件入口</h2>
+        <p><code>liboaAiviVC.so</code> 通过 OA 插件描述注册为 OA VC system 插件：</p>
+        <pre><code>&lt;plugIn lib="oaAiviVC" category="oaVCSystem"/&gt;</code></pre>
+        <table>
+          <thead>
+            <tr><th>项目</th><th>内容</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>插件类名和别名</td><td><code>oaAiviVC</code>、<code>aivivc</code>、<code>oaAiviVCSystem</code></td></tr>
+            <tr><td>C 入口</td><td><code>oaAiviVCInit()</code>、<code>getClassObject(classId, interfaceId, instance)</code></td></tr>
+            <tr><td>实现接口</td><td><code>oaPlugIn::IVCPlugIn</code>、<code>oaPlugIn::IVersionControl</code>、<code>oaPlugIn::IVCSystem</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="config">配置属性</h2>
+        <p>OA 初始化属性优先，其次读取环境变量，最后使用默认值。</p>
+        <table>
+          <thead>
+            <tr><th>OA 属性</th><th>环境变量</th><th>默认值</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>AiviVCRoot</code></td><td><code>AIVIVC_ROOT</code></td><td><code>.</code></td><td>Git/SVN 工作区根目录。</td></tr>
+            <tr><td><code>libPath</code></td><td>无</td><td>无</td><td>兼容属性，等价于 <code>AiviVCRoot</code>。</td></tr>
+            <tr><td><code>writePath</code></td><td>无</td><td>无</td><td>当 root 为空时作为 root。</td></tr>
+            <tr><td><code>AiviVCBackend</code></td><td><code>AIVIVC_BACKEND</code></td><td><code>auto</code></td><td><code>auto</code>、<code>git</code>、<code>svn</code> 或 <code>subversion</code>。</td></tr>
+            <tr><td><code>AiviVCGitCommand</code></td><td><code>AIVIVC_GIT_COMMAND</code>、<code>AIVIVC_GIT</code></td><td><code>git</code></td><td>Git 可执行文件或封装脚本路径。</td></tr>
+            <tr><td><code>AiviVCSvnCommand</code></td><td><code>AIVIVC_SVN_COMMAND</code>、<code>AIVIVC_SVN</code></td><td><code>svn</code></td><td>SVN 可执行文件或封装脚本路径。</td></tr>
+          </tbody>
+        </table>
+
+        <h3>GDM/SKILL 环境变量</h3>
+        <table>
+          <thead>
+            <tr><th>变量</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>AIVIVC_GDM_ADAPTER</code></td><td>原生封装库和 Library Manager 菜单调用的 <code>aivivc-gdm</code> 路径覆盖。</td></tr>
+            <tr><td><code>AIVIVC_COMMIT_MSG</code></td><td>GDM 适配器和 Library Manager SKILL 的默认提交信息。</td></tr>
+            <tr><td><code>AIVIVC_REPLACE_DM_MENU</code></td><td><code>1</code> 或未设置时替换 Design Manager 菜单；<code>0</code> 时保留原菜单并新增 AIVIVC 菜单。</td></tr>
+            <tr><td><code>AIVIVC_DEBUG</code></td><td><code>1</code> 时打印选择解析、DMTYPE 和图标诊断信息。</td></tr>
+            <tr><td><code>AIVIVC_FORCE_LIB_DMTYPE</code></td><td>控制 LM 初始化时是否对 <code>DMTYPE aivivc</code> library 刷新 DD 内存状态。</td></tr>
+            <tr><td><code>AIVIVC_PROTECT_ON_STARTUP</code></td><td>环境脚本默认启动前执行 <code>aivivc-gdm protect</code>；设为 <code>0</code> 可关闭。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>后端选择和路径映射</h2>
+        <p><code>AiviVCBackend=auto</code> 时按 SVN marker、Git worktree、SVN info 的顺序探测；都失败时回退 Git。</p>
+        <table>
+          <thead>
+            <tr><th>OA 对象</th><th>映射路径</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Library</td><td><code>.</code></td></tr>
+            <tr><td>Cell</td><td><code>&lt;cell&gt;</code></td></tr>
+            <tr><td>View</td><td><code>&lt;view&gt;</code></td></tr>
+            <tr><td>CellView</td><td><code>&lt;cell&gt;/&lt;view&gt;</code></td></tr>
+            <tr><td>DMFile</td><td><code>&lt;parent&gt;/&lt;file&gt;</code></td></tr>
+          </tbody>
+        </table>
+        <p>DMFile 会读取父目录中的 <code>master.tag</code>。常见主文件映射包括 <code>schematic -> sch.oa</code>、<code>schematicSymbol -> symbol.oa</code>、<code>maskLayout -> layout.oa</code>。</p>
+
+        <h2 id="semantics">OA 操作语义</h2>
+        <table>
+          <thead>
+            <tr><th>OA 方法</th><th>Git 行为</th><th>SVN 行为</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>getStatus()</code></td><td><code>git ls-files</code>、<code>git status --porcelain=v1 -b</code></td><td><code>svn info</code>、<code>svn status -u</code></td></tr>
+            <tr><td><code>getVersions()</code></td><td><code>git log -n 50 --format=%h -- &lt;path&gt;</code></td><td><code>svn log -q -l 50 &lt;path&gt;</code></td></tr>
+            <tr><td><code>update(version)</code></td><td>有版本时 checkout 指定版本，否则 <code>git pull --ff-only</code></td><td><code>svn update [-r version] &lt;path&gt;</code></td></tr>
+            <tr><td><code>makeEditable(lock)</code></td><td>写入 Git checkout marker，并让受控文件可写。</td><td>写入 fallback marker，并在 <code>lock=true</code> 时执行 <code>svn lock</code>。</td></tr>
+            <tr><td><code>cancelEdit(recurse)</code></td><td><code>git reset</code>、<code>git checkout</code>，递归时 <code>git clean -fd</code>；成功后清 marker 并只读保护。</td><td><code>svn revert</code>，递归时加 <code>-R</code>；成功后清 marker 并只读保护。</td></tr>
+            <tr><td><code>commitEdits(comment)</code></td><td><code>git add</code>、<code>git commit</code>；无改动视为成功；成功后释放 marker。</td><td><code>svn commit</code>；成功后释放 marker。</td></tr>
+            <tr><td><code>setControlled()</code></td><td>必要时 <code>git init</code>，然后 <code>git add</code>；成功后只读保护。</td><td><code>svn add --parents</code>；成功后只读保护。</td></tr>
+            <tr><td><code>unsetControlled(keepLocal)</code></td><td><code>git rm -r</code>；保留本地时加 <code>--cached</code>。</td><td><code>svn delete</code>；保留本地时加 <code>--keep-local</code>。</td></tr>
+          </tbody>
+        </table>
+
+        <h3>状态语义</h3>
+        <ul>
+          <li>Git <code>??</code>、<code>A</code>、<code>D</code>、<code>M/R/C</code>、<code>U/!</code> 分别映射到 Added、Controlled/Added、Deleted、Modified、Conflict/Missing。</li>
+          <li>Git branch behind/diverged/gone 映射为 Remote；ahead 映射为 Modified。</li>
+          <li>SVN <code>A/D/M/C/!</code> 分别映射到 Added、Deleted、Modified、Conflict、Missing；含 <code>*</code> 表示 Remote。</li>
+          <li>checkout marker 属于当前用户且文件可写时为 Editable；属于其它用户时为 Locked。</li>
+          <li><code>git status clean</code> 不等价于 GDM checked-in；aivivc 的编辑状态由 checkout marker 和文件写权限共同决定。</li>
+        </ul>
+
+        <h2 id="gdm-adapter">GDM 命令适配器</h2>
+        <p><code>aivivc-gdm</code> 解析 GDM 风格参数后调用 Git/SVN，并维护 AIVIVC checkout marker。</p>
+        <table>
+          <thead>
+            <tr><th>命令</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>status</code></td><td>显示目标状态。</td></tr>
+            <tr><td><code>status-code</code></td><td>给原生封装库使用的单行机器可读状态。</td></tr>
+            <tr><td><code>history</code></td><td>显示目标历史。</td></tr>
+            <tr><td><code>co</code></td><td>Make Editable，写 checkout marker 并打开写权限。</td></tr>
+            <tr><td><code>ci</code> / <code>submit</code></td><td>提交改动；无改动也释放 marker。</td></tr>
+            <tr><td><code>cancel</code></td><td>回退改动并释放 marker。</td></tr>
+            <tr><td><code>update</code></td><td>更新版本并保护未 checkout 文件。</td></tr>
+            <tr><td><code>protect</code></td><td>把目标受控文件设回只读；跳过当前用户已 checkout 的 marker 路径。</td></tr>
+          </tbody>
+        </table>
+
+        <pre><code>aivivc-gdm status -file "$TARGET"
+aivivc-gdm status-code -cdslib "$WORKAREA/cds.lib" -lib myLib.myCell:schematic/sch.oa
+aivivc-gdm co -file "$TARGET"
+aivivc-gdm ci -message "Commit from Virtuoso" -file "$TARGET"</code></pre>
+
+        <h3><code>status-code</code> 输出</h3>
+        <pre><code>display=CHECKED_IN co= perm=READ modified=0 deleted=0 update=0 managed=1 dir=0 label='Check in'</code></pre>
+        <table>
+          <thead>
+            <tr><th>字段</th><th>值</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>display</code></td><td><code>CHECKED_IN</code>、<code>CHECKED_OUT</code>、<code>OUT_OF_DATE</code>、<code>LOCKED</code>、<code>UNMANAGED</code></td><td>给 GDM/Library Manager 显示偏好使用的状态名。</td></tr>
+            <tr><td><code>co</code></td><td>空、<code>CO</code>、<code>COE</code></td><td>Cadence 低层 checkout slot 值。</td></tr>
+            <tr><td><code>perm</code></td><td><code>READ</code>、<code>WRITE</code></td><td>只有当前用户 checkout 且文件可写时返回 <code>WRITE</code>。</td></tr>
+            <tr><td><code>modified/deleted/update</code></td><td><code>0</code>/<code>1</code></td><td>表示修改、删除或远端更新需求。</td></tr>
+            <tr><td><code>managed/dir</code></td><td><code>0</code>/<code>1</code></td><td>表示是否受 Git/SVN 管理以及是否目录。</td></tr>
+            <tr><td><code>label</code></td><td>文本</td><td>给弹窗或命令行显示的状态。</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="gdm-wrapper">原生 GDM 封装库</h2>
+        <p>原生 GDM 封装库产物名为 <code>libgdmaivivc_sh.so</code>。Cadence 加载器按 <code>DMTYPE aivivc</code> 查找 <code>gdmaivivcWrapFuncs</code>。</p>
+        <table>
+          <thead>
+            <tr><th>槽位</th><th>封装库函数</th><th>行为</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>0</code></td><td><code>dmServerGetWrapName</code></td><td>返回 <code>aivivc</code>。</td></tr>
+            <tr><td><code>7</code></td><td><code>dmServerOperation</code></td><td>归一化 GDM 操作名并调用 <code>aivivc-gdm</code>。</td></tr>
+            <tr><td><code>13/14</code></td><td>manageable/unmanaged 查询</td><td>基于 <code>status-code managed</code>。</td></tr>
+            <tr><td><code>15</code></td><td>checkout status</td><td>空、<code>CO</code> 或 <code>COE</code>。</td></tr>
+            <tr><td><code>16</code></td><td>delete status</td><td>删除或缺失时返回 <code>DEL</code>。</td></tr>
+            <tr><td><code>17</code></td><td>modified status</td><td>修改或新增时返回 <code>MOD</code>。</td></tr>
+            <tr><td><code>18</code></td><td>permission status</td><td><code>READ</code> 或 <code>WRITE</code>。</td></tr>
+            <tr><td><code>29</code></td><td>update-needed status</td><td>基于 Git behind/diverged/gone 或 SVN <code>status -u</code>。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Virtuoso SKILL/GDM 对接点</h2>
+        <pre><code>gdmSpec = gdmCreateSpec("myLib" "myCell" "schematic" "sch.oa" "CDBA")
+gdmstatus(gdmSpec 6) ; 设计管理状态：gdmStateCI/gdmStateCO/gdmStateCOE
+gdmstatus(gdmSpec 7) ; 工作区状态：gdmStateRead/gdmStateWrite</code></pre>
+        <table>
+          <thead>
+            <tr><th>API</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>lmgrDefineInits</code></td><td>注册 Library Manager 启动加载表达式。</td></tr>
+            <tr><td><code>lmgrCreateMenu</code> / <code>lmgrCreateMenuItem</code> / <code>lmgrAddMenuItems</code></td><td>创建菜单和菜单项。</td></tr>
+            <tr><td><code>lmgrSensitizeMenuItems</code></td><td>在 menu pre-map 时根据当前选择启用或禁用菜单项。</td></tr>
+            <tr><td><code>ddSetLibDmType</code></td><td>对已写 <code>DMTYPE aivivc</code> 的 library 刷新 DD 内存状态。</td></tr>
+            <tr><td><code>ddUpdateLibList</code> / <code>ddsRefresh</code></td><td>状态改变后刷新 Library Manager/DD 视图。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>构建和回归</h2>
+        <pre><code>export OAPLG_ROOT=...
+export OACPP=...
+
+cd "$OAPLG_ROOT"
+./build_all.sh opt
+
+bash regtest/test_aivivc_git.sh
+bash regtest/test_aivivc_svn.sh
+bash regtest/test_aivivc_gdm_adapter.sh
+bash regtest/test_aivivc_gdm_wrapper.sh</code></pre>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">AIVIVC API / oaPlugin</footer>
+</body>
+</html>

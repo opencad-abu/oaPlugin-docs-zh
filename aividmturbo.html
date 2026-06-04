@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aividmturbo 模块说明 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aividmturbo.html" aria-current="page">aividmturbo</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a class="active-link" href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aividmturbo</div>
+        <h1>aividmturbo</h1>
+        <p class="lead">
+          这是 DMTurbo 的客户端插件，负责把 OA 的 DM 操作转给独立服务端。它依赖 <code>aividmturbobase</code> 提供的协议和对象模型。
+        </p>
+
+        <div class="meta">
+          <div><strong>产物：</strong><code>liboaAiviDMTurbo.so</code></div>
+          <div><strong>接口：</strong><code>ILib</code>、<code>IDMAccess</code>、<code>ILocking</code>、<code>IAccessControl</code>、<code>IDMSystemCaps</code>、<code>IPlugInAbort</code></div>
+          <div><strong>边界：</strong>客户端只保留插件逻辑，真正的库状态和对象树在服务端维护。</div>
+        </div>
+
+        <h2>导出入口</h2>
+        <table>
+          <thead>
+            <tr><th>符号</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>oaAiviDMTurboInit()</code></td><td>注册客户端插件和 <code>LibServerMgr</code> 工厂。</td></tr>
+            <tr><td><code>oaDMTurboInit()</code></td><td>兼容初始化入口。</td></tr>
+            <tr><td><code>oaAiviDMTurboExit()</code></td><td>退出入口。</td></tr>
+            <tr><td><code>AiviDMTurboExit()</code> / <code>DMTurboExit()</code></td><td>兼容退出别名。</td></tr>
+            <tr><td><code>getClassObject()</code></td><td>OA 加载器标准入口。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>主类</h2>
+        <table>
+          <thead>
+            <tr><th>组件</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>PlugIn</code></td><td>主插件类，负责所有 OA DM 接口的实现。</td></tr>
+            <tr><td><code>LibServerMgr</code></td><td>服务端管理工厂，负责启动/定位库服务器。</td></tr>
+            <tr><td><code>oaAiviDMTurboBase</code></td><td>公共底座，提供协议、流和内存对象模型。</td></tr>
+          </tbody>
+        </table>
+
+        <h3>常用方法</h3>
+        <table>
+          <thead>
+            <tr><th>方法</th><th>作用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>init()</code></td><td>建立插件与库的初始连接。</td></tr>
+            <tr><td><code>getPath()</code> / <code>getTempFile()</code></td><td>把 DM 对象映射到实际路径。</td></tr>
+            <tr><td><code>lock()</code> / <code>unlock()</code></td><td>把锁请求转给服务端。</td></tr>
+            <tr><td><code>getLockStatus()</code></td><td>查询当前对象锁状态。</td></tr>
+            <tr><td><code>queryCapability()</code> / <code>getMetric()</code></td><td>报告服务端支持能力与度量值。</td></tr>
+            <tr><td><code>onAbort()</code></td><td>处理异常中断。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>调用流</h2>
+        <ol>
+          <li>OA 载入 <code>liboaAiviDMTurbo.so</code> 并创建 <code>PlugIn</code>。</li>
+          <li><code>init()</code> 阶段由插件连接到服务端，并读取库目录下的 <code>server.xml</code>。</li>
+          <li>后续的 create/find/lock/save 操作都转成协议消息发给服务端。</li>
+          <li>服务端更新对象树后，客户端再把结果映射回 OA 侧接口返回。</li>
+        </ol>
+
+        <p>
+          这个模块更像一个远程 DM 代理。它不负责 Git/SVN，也不做 aivivc 的状态判断，职责边界是服务端对象树和 OA 插件之间的通道。
+        </p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aividmturbo / oaPlugin</footer>
+</body>
+</html>

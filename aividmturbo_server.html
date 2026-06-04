@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aividmturbo_server 服务端 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aividmturbo_server.html" aria-current="page">aividmturbo_server</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a class="active-link" href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aividmturbo_server</div>
+        <h1>aividmturbo_server</h1>
+        <p class="lead">
+          这是 DMTurbo 的独立服务端进程。它监听端口、维护服务端对象树，并把状态写入库目录，供 <code>aividmturbo</code> 客户端连接。
+        </p>
+
+        <div class="meta">
+          <div><strong>产物：</strong><code>oaAiviDMTurboServer</code></div>
+          <div><strong>启动形式：</strong><code>oaAiviDMTurboServer &lt;port&gt; &lt;libPath&gt;</code></div>
+          <div><strong>输出：</strong>会在库路径下生成或刷新 <code>server.xml</code>。</div>
+        </div>
+
+        <h2>入口</h2>
+        <table>
+          <thead>
+            <tr><th>符号</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>main()</code></td><td>解析命令行参数并设置信号处理。</td></tr>
+            <tr><td><code>oaDMTurbo::runServer()</code></td><td>真正的服务循环入口。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>服务流程</h2>
+        <ol>
+          <li>创建监听 socket，并绑定到指定端口。</li>
+          <li>把实际监听端口写入 <code>server.xml</code>，供客户端发现。</li>
+          <li>接收连接后按 <code>aividmturbobase</code> 的协议处理消息。</li>
+          <li>在库路径下维护服务端状态和对象树。</li>
+        </ol>
+
+        <h2>和客户端的关系</h2>
+        <table>
+          <thead>
+            <tr><th>角色</th><th>职责</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>aividmturbo</code></td><td>OA 侧客户端插件，负责发起请求并把结果映射回 OA 接口。</td></tr>
+            <tr><td><code>aividmturbobase</code></td><td>协议和对象模型底座。</td></tr>
+            <tr><td><code>aividmturbo_server</code></td><td>真正保存和处理库状态的服务进程。</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aividmturbo_server / oaPlugin</footer>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIVIVC Virtuoso 集成 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab" href="aivivc.html">使用说明</a>
+        <a class="tab" href="api.html">API</a>
+        <a class="tab active" href="integration.html" aria-current="page">Virtuoso 集成</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+            <li><a href="api.html">aivivc API</a></li>
+            <li><a class="active-link" href="integration.html">Virtuoso 集成 flow</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sidebar-panel">
+        <div class="sidebar-title">集成章节</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="#flow">端到端 flow</a></li>
+            <li><a href="#env">启动环境</a></li>
+            <li><a href="#skill">Library Manager</a></li>
+            <li><a href="#gdm">GDM 封装库</a></li>
+            <li><a href="#verify">CIW 验证</a></li>
+            <li><a href="#trouble">故障排查</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / Virtuoso 集成</div>
+        <h1>AIVIVC Virtuoso 集成指导</h1>
+        <p class="lead">
+          本页描述 aivivc 在 Virtuoso 中的加载和测试方式。aivivc 提供 OA VC 插件和 Cadence 原生 GDM 封装库两条路径，Library Manager 菜单作为用户交互桥。
+        </p>
+
+        <h2>目标</h2>
+        <ol>
+          <li>OA VC 插件：<code>liboaAiviVC.so</code> 通过 OA 插件管理器加载，实现 <code>IVersionControl</code>。</li>
+          <li>Cadence 原生 GDM 封装库：<code>libgdmaivivc_sh.so</code> 导出 <code>gdmaivivcWrapFuncs</code>，薄封装调用 <code>aivivc-gdm</code>。</li>
+          <li>Library Manager 菜单：<code>aivivcLibMgr.il</code> 创建菜单，<code>aivivcCallbacks.il</code> 执行动作回调。</li>
+        </ol>
+
+        <h2 id="flow">端到端集成 flow</h2>
+        <ol>
+          <li>构建 oaPlugin，确认 <code>liboaAiviVC.so</code>、<code>libgdmaivivc_sh.so</code>、<code>aivivc-gdm</code>、<code>aivivcgdmconfig</code> 都已生成。</li>
+          <li>在工作区根目录准备 Git/SVN 工作副本和 <code>cds.lib</code>，library 路径必须落在同一个工作副本内。</li>
+          <li>启动 Virtuoso 前执行 <code>source</code> 加载环境脚本。</li>
+          <li><code>.cdsinit</code> 只加载 <code>aivivcCallbacks.il</code>。</li>
+          <li>Library Manager customization context 加载 <code>cdsLibMgr.il</code>，由它创建菜单并在 LM 上下文内加载回调。</li>
+          <li>工作区或 library 的 <code>cdsinfo.tag</code> 写入 <code>DMTYPE aivivc</code>。</li>
+          <li>先用 shell 验证适配器，再在 CIW 用 <code>gdmCreateSpec</code>/<code>gdmstatus</code> 验证原生封装库。</li>
+          <li>最后在 Library Manager 中执行 <code>Status...</code>、<code>Make Editable</code>、<code>Commit...</code>、<code>Cancel Edit...</code>。</li>
+        </ol>
+
+        <h2>构建</h2>
+        <pre><code>export OAPLG_ROOT=...
+export OACPP=...
+export SYSNAME=linux_rhel90_64
+export OPTMODE=opt
+
+cd "$OAPLG_ROOT"
+./build_all.sh opt
+
+ls -l "$OAPLG_ROOT/lib/$SYSNAME/$OPTMODE/liboaAiviVC.so"
+ls -l "$OAPLG_ROOT/lib/$SYSNAME/$OPTMODE/libgdmaivivc_sh.so"
+nm -D --defined-only "$OAPLG_ROOT/lib/$SYSNAME/$OPTMODE/libgdmaivivc_sh.so" | grep gdmaivivcWrapFuncs</code></pre>
+
+        <h2 id="env">启动 Virtuoso 前的环境</h2>
+        <p>推荐从同一个 shell 启动 Virtuoso，确保进程继承插件路径、GDM 变量和 Git/SVN 命令路径。</p>
+        <pre><code>export OAPLG_ROOT=...
+export OACPP=...
+export WORKAREA=...
+export SYSNAME=linux_rhel90_64
+export OPTMODE=opt
+
+source "$OAPLG_ROOT/scripts/aivivc_virtuoso_env.sh" "$WORKAREA"</code></pre>
+        <p>环境脚本会设置或补齐：</p>
+        <table>
+          <thead>
+            <tr><th>变量</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>PATH</code></td><td>包含构建产物目录和 <code>aivivc-gdm</code>/<code>aivivcgdmconfig</code>。</td></tr>
+            <tr><td><code>LD_LIBRARY_PATH</code></td><td>包含 oaPlugin、oacpp、Python/SVN 运行库。</td></tr>
+            <tr><td><code>OA_PLUGIN_PATH</code></td><td>让 OA 插件管理器找到 <code>oaAiviVC.plg</code> 和 <code>aivivc.plg</code>。</td></tr>
+            <tr><td><code>GDM_USE_SHLIB_ENVVAR</code> / <code>CDS_GDM_SHLIB_LOCATION</code></td><td>让 Cadence GDM 从指定目录加载 <code>libgdmaivivc_sh.so</code>。</td></tr>
+            <tr><td><code>AIVIVC_ROOT</code> / <code>AIVIVC_GDM_ADAPTER</code> / <code>AIVIVC_SKILL_DIR</code></td><td>给 OA 插件、GDM 封装库和 SKILL 菜单使用。</td></tr>
+          </tbody>
+        </table>
+        <p>脚本默认会安装/刷新 Library Manager 资源、补写工作区 <code>DMTYPE aivivc</code>，并执行 <code>aivivc-gdm protect</code> 把未 checkout 的受控文件恢复为只读。</p>
+
+        <pre><code>export AIVIVC_INSTALL_LIBMGR_ASSETS=0
+export AIVIVC_PROTECT_ON_STARTUP=0
+export AIVIVC_INSTALL_WORKAREA_TAG=0
+export AIVIVC_SET_CDS_WORKAREA=0</code></pre>
+
+        <h2>OA VC 插件加载</h2>
+        <p>OA 插件管理器通过 <code>OA_PLUGIN_PATH</code> 找到 <code>data/plugins/oaAiviVC.plg</code> 和 <code>data/plugins/aivivc.plg</code>，运行时加载 <code>liboaAiviVC.so</code>。</p>
+        <pre><code>export AIVIVC_ROOT="$WORKAREA"
+export AIVIVC_BACKEND=auto</code></pre>
+
+        <h2 id="skill">Library Manager 菜单</h2>
+        <p>SKILL 代码分成两个上下文：</p>
+        <table>
+          <thead>
+            <tr><th>文件</th><th>加载位置</th><th>职责</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>aivivcCallbacks.il</code></td><td>CIW 或 LM 上下文</td><td>动作和回调函数、路径解析、菜单 pre-map callback。</td></tr>
+            <tr><td><code>aivivcLibMgr.il</code> / <code>cdsLibMgr.il</code></td><td>Library Manager customization context</td><td>创建菜单，并在 LM 上下文内加载回调。</td></tr>
+          </tbody>
+        </table>
+        <pre><code>; .cdsinit
+load(strcat(getShellEnvVar("AIVIVC_SKILL_DIR") "/aivivcCallbacks.il"))
+
+; Library Manager customization context
+load(strcat(getShellEnvVar("AIVIVC_SKILL_DIR") "/cdsLibMgr.il"))</code></pre>
+        <table>
+          <thead>
+            <tr><th>菜单项</th><th>Adapter 命令</th><th>状态/权限效果</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Status...</code></td><td><code>aivivc-gdm status -file "$TARGET"</code></td><td>弹窗显示 Check in、Check out、Out of date、Locked 等状态。</td></tr>
+            <tr><td><code>Make Editable</code></td><td><code>aivivc-gdm co -file "$TARGET"</code></td><td>写 checkout marker，并把受控文件置为当前用户可写。</td></tr>
+            <tr><td><code>Commit...</code></td><td><code>aivivc-gdm ci -message "$MSG" -file "$TARGET"</code></td><td>提交内容；无内容改动也会释放 checkout marker。</td></tr>
+            <tr><td><code>Cancel Edit...</code></td><td><code>aivivc-gdm cancel -file "$TARGET"</code></td><td>revert/clean 后释放 marker，并恢复只读。</td></tr>
+            <tr><td><code>Update</code></td><td><code>aivivc-gdm update -file "$TARGET"</code></td><td>拉取/更新版本，成功后保护未 checkout 的文件。</td></tr>
+            <tr><td><code>History...</code></td><td><code>aivivc-gdm history -file "$TARGET"</code></td><td>显示最近历史。</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="gdm">GDM 原生封装库集成</h2>
+        <p>Cadence GDM 加载器会按 DMTYPE 拼接查找 <code>gdm%sWrapFuncs</code>。AIVIVC 的 DMTYPE 是 <code>aivivc</code>，对应符号为 <code>gdmaivivcWrapFuncs</code>，封装库名为 <code>libgdmaivivc_sh.so</code>。</p>
+        <pre><code>export GDM_USE_SHLIB_ENVVAR=yes
+export CDS_GDM_SHLIB_LOCATION="$OAPLG_ROOT/lib/$SYSNAME/$OPTMODE"
+export PATH="$OAPLG_ROOT/lib/$SYSNAME/$OPTMODE:$OAPLG_ROOT/src/aivivc/gdm:$PATH"
+export LD_LIBRARY_PATH="$OAPLG_ROOT/lib/$SYSNAME/$OPTMODE:${LD_LIBRARY_PATH:-}"</code></pre>
+        <p>库目录或现场 DM 配置中需要声明：</p>
+        <pre><code>DMTYPE aivivc</code></pre>
+
+        <h2 id="verify">CIW/GDM API 验证</h2>
+        <p>在 CIW 中先确认 Virtuoso 进程继承了启动 shell 的环境：</p>
+        <pre><code>getShellEnvVar("PATH")
+getShellEnvVar("LD_LIBRARY_PATH")
+getShellEnvVar("OA_PLUGIN_PATH")
+getShellEnvVar("GDM_USE_SHLIB_ENVVAR")
+getShellEnvVar("CDS_GDM_SHLIB_LOCATION")
+getShellEnvVar("AIVIVC_GDM_ADAPTER")</code></pre>
+        <p>然后创建 GDM spec 并查询状态：</p>
+        <pre><code>gdmSpec = gdmCreateSpec("myLib" "myCell" "schematic" "sch.oa" "CDBA")
+gdmstatus(gdmSpec 6)
+gdmstatus(gdmSpec 7)</code></pre>
+        <table>
+          <thead>
+            <tr><th>场景</th><th><code>gdmstatus(... 6)</code></th><th><code>gdmstatus(... 7)</code></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>已受控、未 checkout</td><td><code>gdmStateCI</code></td><td><code>gdmStateRead</code></td></tr>
+            <tr><td>当前用户 Make Editable/co 后</td><td><code>gdmStateCO</code></td><td><code>gdmStateWrite</code></td></tr>
+            <tr><td>其它用户 checkout</td><td><code>gdmStateCOE</code></td><td><code>gdmStateRead</code></td></tr>
+            <tr><td>未受控或 DMTYPE/GDM 未关联</td><td><code>gdmStateNone</code> 或 <code>gdmStateUnmanageable</code></td><td><code>gdmStateNone</code> 或 <code>gdmStateRead</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Git/SVN 工作区测试</h2>
+        <pre><code>cd "$WORKAREA"
+git status -sb
+git config user.name "AIVIVC Test"
+git config user.email "aivivc@example.invalid"
+
+aivivc-gdm protect -file "$WORKAREA/myLib"
+aivivc-gdm status -cdslib "$WORKAREA/cds.lib" -lib myLib.myCell:schematic/sch.oa
+aivivc-gdm status-code -cdslib "$WORKAREA/cds.lib" -lib myLib.myCell:schematic/sch.oa
+aivivc-gdm co -cdslib "$WORKAREA/cds.lib" -lib myLib.myCell:schematic/sch.oa
+aivivc-gdm ci -message "AIVIVC smoke check" -cdslib "$WORKAREA/cds.lib" -lib myLib.myCell:schematic/sch.oa</code></pre>
+        <p>SVN 工作区需要先确保 <code>svn</code> 可执行文件和运行库在启动 shell 环境中可见。</p>
+
+        <h2>命令行预检</h2>
+        <pre><code>cd "$OAPLG_ROOT"
+export OACPP=...
+
+bash regtest/test_aivivc_git.sh
+bash regtest/test_aivivc_svn.sh
+bash regtest/test_aivivc_gdm_adapter.sh
+bash regtest/test_aivivc_gdm_wrapper.sh
+
+aivivcgdmconfig -commands
+aivivc-gdm status -file "$WORKAREA"
+aivivc-gdm status-code -file "$WORKAREA"
+aivivc-gdm history -file "$WORKAREA"</code></pre>
+
+        <h2 id="trouble">故障排查</h2>
+        <table>
+          <thead>
+            <tr><th>现象</th><th>检查点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>oaAiviVC load failed</code></td><td>检查 <code>OA_PLUGIN_PATH</code>、<code>LD_LIBRARY_PATH</code> 和 <code>liboaAiviVC.so</code>。</td></tr>
+            <tr><td><code>no Git/SVN work area found</code></td><td>确认目标 library 在 Git/SVN 工作副本内，或显式设置 <code>AIVIVC_ROOT</code> 与 <code>AIVIVC_BACKEND</code>。</td></tr>
+            <tr><td><code>gdmaivivcWrapFuncs</code> 找不到</td><td>检查 <code>CDS_GDM_SHLIB_LOCATION</code>、<code>DMTYPE aivivc</code>，并用 <code>nm</code> 确认符号。</td></tr>
+            <tr><td>找不到 <code>aivivcgdmconfig</code></td><td>检查 <code>PATH</code> 是否包含构建产物目录或 <code>src/aivivc/gdm</code>。</td></tr>
+            <tr><td>GDM 封装库能加载但操作失败</td><td>检查 <code>AIVIVC_GDM_ADAPTER</code>、Python/SVN 运行库，并直接运行 <code>aivivc-gdm status -file "$TARGET"</code>。</td></tr>
+            <tr><td>Library Manager 菜单没有出现</td><td>确认 <code>.cdsinit</code> 只加载 callbacks，菜单文件由 Library Manager customization context 加载。</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">AIVIVC Virtuoso 集成 / oaPlugin</footer>
+</body>
+</html>

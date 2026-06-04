@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aivilibdef 工具库 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aivilibdef.html" aria-current="page">aivilibdef</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a class="active-link" href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aivilibdef</div>
+        <h1>aivilibdef</h1>
+        <p class="lead">
+          这是 lib.defs / cds.lib 的读取和写回工具库，面向 OA 的 <code>ILibDef</code> 入口。它更像一个基础设施模块，而不是面向最终用户的 UI 插件。
+        </p>
+
+        <div class="meta">
+          <div><strong>入口：</strong><code>oaAiviLibDefInit()</code> 与 <code>getClassObject()</code></div>
+          <div><strong>注册名：</strong><code>oaAiviLibDef</code>、<code>oaAiviLibDefSystem</code>、<code>oaLibDef</code>、<code>oaLibDefSystem</code></div>
+          <div><strong>接口：</strong><code>ILibDef</code></div>
+        </div>
+
+        <h2>主类</h2>
+        <table>
+          <thead>
+            <tr><th>组件</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>AiviLibDef</code></td><td>实现 <code>ILibDef</code> 的主类。</td></tr>
+            <tr><td><code>Factory</code></td><td>OA 工厂对象，供插件管理器加载。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>常用方法</h2>
+        <table>
+          <thead>
+            <tr><th>方法</th><th>作用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>init()</code></td><td>接收 <code>ILibDefAccess</code>。</td></tr>
+            <tr><td><code>open()</code></td><td>打开默认库定义文件。</td></tr>
+            <tr><td><code>open(path, openReferences)</code></td><td>按指定路径打开并递归处理引用。</td></tr>
+            <tr><td><code>save()</code> / <code>saveAs()</code></td><td>把修改写回到 lib.defs 或 cds.lib。</td></tr>
+            <tr><td><code>getDefaultPath()</code> / <code>getDefaultFileName()</code></td><td>计算默认入口文件。</td></tr>
+            <tr><td><code>hasPath()</code> / <code>hasWritePath()</code></td><td>报告路径能力。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>调用流</h2>
+        <ol>
+          <li>OA 调用 <code>open()</code> 进入默认库定义文件。</li>
+          <li>解析 <code>ai.lib</code>、<code>lib.defs</code> 或 <code>cds.lib</code> 中的条目。</li>
+          <li>按需要递归打开引用库，并把结果写回。</li>
+          <li>修改后通过 <code>save()</code> 或 <code>saveAs()</code> 输出新文件。</li>
+        </ol>
+
+        <pre><code>AIVI_LIBDEF_DEBUG=1</code></pre>
+
+        <p>
+          如果要追踪库定义解析过程，可以打开 <code>AIVI_LIBDEF_DEBUG</code>。这个库主要用于把 OA 的库定义入口统一起来。
+        </p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aivilibdef / oaPlugin</footer>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aividmfilesys 模块说明 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aividmfilesys.html" aria-current="page">aividmfilesys</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a class="active-link" href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aividmfilesys</div>
+        <h1>aividmfilesys</h1>
+        <p class="lead">
+          这是 OA DM 文件系统插件，负责库、cell、view、file 的路径映射、锁、访问控制和 cache/temporary 文件处理。它和 <code>aividmfilesysbase</code> 一起构成 DM FileSys 侧实现。
+        </p>
+
+        <div class="meta">
+          <div><strong>产物：</strong><code>liboaAiviDMFileSys.so</code></div>
+          <div><strong>接口：</strong><code>ILib</code>、<code>IDMAccess</code>、<code>ILocking</code>、<code>IAccessControl</code>、<code>IDMSystemCaps</code>、<code>IPlugInAbort</code></div>
+          <div><strong>职责：</strong>把 OA 对象映射到实际文件系统，并在写入前后维护锁状态。</div>
+        </div>
+
+        <h2>导出入口</h2>
+        <table>
+          <thead>
+            <tr><th>符号</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>oaAiviDMFileSysInit()</code></td><td>注册工厂别名并初始化插件入口。</td></tr>
+            <tr><td><code>oaDMFileSysInit()</code></td><td>兼容别名，等同于 <code>oaAiviDMFileSysInit()</code>。</td></tr>
+            <tr><td><code>oaAiviDMFileSysExit()</code></td><td>退出清理，释放锁相关残留。</td></tr>
+            <tr><td><code>FileSysExit()</code></td><td>兼容退出入口。</td></tr>
+            <tr><td><code>getClassObject()</code></td><td>OA 加载器标准入口，返回工厂对象。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>主类和接口</h2>
+        <table>
+          <thead>
+            <tr><th>组件</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>oaDMFileSysComp</code></td><td>主实现类，承担 <code>init</code>、对象创建、路径映射、锁和权限控制。</td></tr>
+            <tr><td><code>Locking</code></td><td>文件锁实现，处理单文件、递归对象和编辑锁文件。</td></tr>
+            <tr><td><code>FileLocking</code></td><td>进程级锁状态单例，负责恢复、清理和 daemon 交互。</td></tr>
+          </tbody>
+        </table>
+
+        <h3>常用方法</h3>
+        <table>
+          <thead>
+            <tr><th>方法</th><th>作用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>init()</code></td><td>接收 libName、libPath、writePath 和 DM 属性。</td></tr>
+            <tr><td><code>getPath()</code></td><td>把 DM 对象转换成磁盘路径。</td></tr>
+            <tr><td><code>fileGetCache()</code> / <code>fileReleaseCache()</code></td><td>管理缓存文件路径。</td></tr>
+            <tr><td><code>getAccess()</code> / <code>releaseAccess()</code></td><td>控制库级别访问权限。</td></tr>
+            <tr><td><code>lock()</code> / <code>unlock()</code></td><td>对 DM 文件加锁和解锁。</td></tr>
+            <tr><td><code>getLockStatus()</code></td><td>返回当前文件锁状态。</td></tr>
+            <tr><td><code>queryCapability()</code> / <code>getMetric()</code></td><td>提供 DM 系统能力和度量查询。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>调用流程</h2>
+        <ol>
+          <li>OA 打开库时创建 <code>oaDMFileSysComp</code>，由 <code>init()</code> 读取路径和属性。</li>
+          <li>对 cell 或 view 进行操作时，插件根据对象名拼出物理文件路径。</li>
+          <li>写入前调用 <code>lock()</code> / <code>getAccess()</code>，读写权限和锁状态在这里统一控制。</li>
+          <li>退出或恢复时由 <code>FileLocking</code> 做清理，避免残留锁文件。</li>
+        </ol>
+
+        <p>
+          这个模块解决的是“文件系统如何被 OA 理解”，而不是版本控制。版本内容可以继续交给 <code>aivivc</code> 或后续状态模块处理。
+        </p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aividmfilesys / oaPlugin</footer>
+</body>
+</html>

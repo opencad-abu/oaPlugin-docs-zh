@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aividmfilesysbase 支撑库 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aividmfilesysbase.html" aria-current="page">aividmfilesysbase</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a class="active-link" href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aividmfilesysbase</div>
+        <h1>aividmfilesysbase</h1>
+        <p class="lead">
+          这是 DM 文件系统的支撑库，不是独立的 OA 插件页面。它提供异常、消息和客户端-服务端 socket 封装，供 <code>aividmfilesys</code> 复用。
+        </p>
+
+        <div class="meta">
+          <div><strong>产物：</strong><code>liboaAiviDMFileSysBase.so</code></div>
+          <div><strong>定位：</strong>DM FileSys 的消息层、错误层和 <code>oaCSMsg</code> 传输层。</div>
+          <div><strong>关系：</strong>被 <code>aividmfilesys</code> 调用，不单独提供 LM 菜单或用户界面。</div>
+        </div>
+
+        <h2>导出接口</h2>
+        <table>
+          <thead>
+            <tr><th>符号</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Exception</code></td><td>DMFileSys 基础异常对象，保存消息 ID 与消息表范围。</td></tr>
+            <tr><td><code>Error</code></td><td>带格式化参数的错误对象，通常用于失败路径回报。</td></tr>
+            <tr><td><code>InfoMsg</code></td><td>信息消息对象，和错误分表管理。</td></tr>
+            <tr><td><code>oaCSMsg</code></td><td>客户端-服务端 socket 包装，给锁服务或控制服务通信用。</td></tr>
+            <tr><td><code>getDMFileSysMsg()</code></td><td>按错误 ID 取出错误文本。</td></tr>
+            <tr><td><code>getDMFileSysInfoMsg()</code></td><td>按信息 ID 取出提示文本。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>调用方式</h2>
+        <ol>
+          <li>主模块先创建 <code>oaDMFileSysComp</code> 或锁管理对象，再按需要构造异常或提示消息。</li>
+          <li>需要进程间通信时，使用 <code>oaCSMsg</code> 打开 Unix domain socket 并发送请求。</li>
+          <li>错误和提示文本通过消息 ID 统一管理，便于前后端保持一致。</li>
+        </ol>
+
+        <pre><code>oaDMFileSys::Error err(oaDMFileSys::oacLibNotFoundErr, "myLib");
+oaDMFileSys::oaCSMsg msg;
+msg.send(1001, "%s", "lock request");</code></pre>
+
+        <h2>接口边界</h2>
+        <p>
+          这个库的职责是把 DMFileSys 的通用基础能力拆出来，减少主插件中的重复代码。它本身不承担库、cell、view 的对象映射，也不处理界面逻辑。
+        </p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aividmfilesysbase / oaPlugin</footer>
+</body>
+</html>

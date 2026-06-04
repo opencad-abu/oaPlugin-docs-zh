@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aividmturbobase 支撑库 | oaPlugin</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/aivi.svg" alt="AIVI oaPlugin">
+        <span><strong>oaPlugin</strong><small>AIVI OpenAccess Plugin Suite</small></span>
+      </a>
+      <nav class="tabs" aria-label="主导航">
+        <a class="tab" href="index.html">主页</a>
+        <a class="tab active" href="aividmturbobase.html" aria-current="page">aividmturbobase</a>
+        <a class="tab" href="https://github.com/opencad-abu/oaPlugin" target="_blank" rel="noopener noreferrer">源码项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-panel">
+        <div class="sidebar-title">文档导航</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="index.html">oaPlugin 主页</a></li>
+            <li><a href="aivivc.html">aivivc 使用说明</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sidebar-title">模块目录</div>
+        <div class="sidebar-body">
+          <ul>
+            <li><a href="aivivc.html">aivivc</a></li>
+            <li><a href="aividmfilesys.html">aividmfilesys</a></li>
+            <li><a href="aividmturbo.html">aividmturbo</a></li>
+            <li><a href="aivipcell.html">aivipcell</a></li>
+            <li><a href="aivitext.html">aivitext</a></li>
+            <li><a href="aividmfilesysbase.html">aividmfilesysbase</a></li>
+            <li><a class="active-link" href="aividmturbobase.html">aividmturbobase</a></li>
+            <li><a href="aividmturbo_server.html">aividmturbo_server</a></li>
+            <li><a href="aivilock.html">aivilock</a></li>
+            <li><a href="aivilibdef.html">aivilibdef</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <article class="doc">
+        <div class="crumbs"><a href="index.html">oaPlugin</a> / aividmturbobase</div>
+        <h1>aividmturbobase</h1>
+        <p class="lead">
+          这是 DMTurbo 的支撑库，提供客户端-服务端协议、流序列化、内存数据库对象和服务器管理类。它是 <code>aividmturbo</code> 与 <code>aividmturbo_server</code> 的公共底座。
+        </p>
+
+        <div class="meta">
+          <div><strong>产物：</strong><code>liboaAiviDMTurboBase.so</code></div>
+          <div><strong>定位：</strong>协议层、对象模型层、服务器管理层。</div>
+          <div><strong>边界：</strong>不直接面向用户界面，主要给客户端插件和服务端进程复用。</div>
+        </div>
+
+        <h2>导出入口</h2>
+        <table>
+          <thead>
+            <tr><th>符号</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>oaDMTurboInit()</code></td><td>初始化底座库的注册表和运行时对象。</td></tr>
+            <tr><td><code>DMTurboExit()</code></td><td>退出清理入口。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>核心接口</h2>
+        <table>
+          <thead>
+            <tr><th>接口/类</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>IChannel</code></td><td>TCP 连接抽象，负责连接服务器和收发字节流。</td></tr>
+            <tr><td><code>CSMsg</code></td><td>客户端-服务端消息包装，封装 request/response。</td></tr>
+            <tr><td><code>Stream</code></td><td>二进制序列化流。</td></tr>
+            <tr><td><code>StringTbl</code></td><td>字符串驻留表，给协议对象节省重复字符串开销。</td></tr>
+            <tr><td><code>DMObject</code> / <code>DMLib</code> / <code>DMCell</code> / <code>DMView</code> / <code>DMCellView</code> / <code>DMFile</code></td><td>服务端内存数据库对象树。</td></tr>
+            <tr><td><code>LibServer</code> / <code>LibServerMgr</code></td><td>库服务器和服务器管理器。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>协议消息</h2>
+        <table>
+          <thead>
+            <tr><th>消息</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>kMsgCreateLib</code> / <code>kMsgOpenLib</code> / <code>kMsgCloseLib</code></td><td>库生命周期操作。</td></tr>
+            <tr><td><code>kMsgCreateCell</code> / <code>kMsgFindCell</code> / <code>kMsgDestroyCell</code></td><td>Cell 相关操作。</td></tr>
+            <tr><td><code>kMsgCreateView</code> / <code>kMsgDestroyView</code></td><td>View 相关操作。</td></tr>
+            <tr><td><code>kMsgCreateFile</code> / <code>kMsgFindFile</code> / <code>kMsgDestroyFile</code></td><td>文件对象相关操作。</td></tr>
+            <tr><td><code>kMsgLock</code> / <code>kMsgUnlock</code> / <code>kMsgHasLockedFiles</code></td><td>锁状态相关操作。</td></tr>
+            <tr><td><code>kMsgSave</code> / <code>kMsgLoad</code> / <code>kMsgPing</code> / <code>kMsgShutdown</code></td><td>持久化与控制信号。</td></tr>
+          </tbody>
+        </table>
+
+        <h2>调用方式</h2>
+        <ol>
+          <li>客户端插件通过 <code>IChannel</code> 连接服务端。</li>
+          <li>使用 <code>CSMsg</code> 组装请求并发送，服务端按协议更新内存对象树。</li>
+          <li>服务端把状态写回 <code>server.xml</code> 或对应库目录，供后续连接复用。</li>
+        </ol>
+
+        <p>
+          简单说，这一层是“DMTurbo 的公共语言”。真正的 OA 插件和服务端都建立在这个语言之上。
+        </p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="footer">aividmturbobase / oaPlugin</footer>
+</body>
+</html>
